@@ -78,7 +78,7 @@ const Index = () => {
         <section id="features" className="py-20 px-4">
           <div className="container mx-auto">
             <div className="text-center mb-16">
-              <Badge className="mb-4 bg-wellness-mint/20 text-wellness-forest">
+              <Badge className="mb-4 bg-wellness-indigo/20 text-wellness-indigo">
                 AI-POWERED WELLNESS
               </Badge>
               <h2 className="text-4xl font-playfair font-semibold mb-4">
@@ -98,7 +98,7 @@ const Index = () => {
         <section id="demo" className="py-20 px-4 bg-muted/50">
           <div className="container mx-auto">
             <div className="text-center mb-16">
-              <Badge className="mb-4 bg-wellness-ocean/20 text-wellness-ocean">
+              <Badge className="mb-4 bg-wellness-cyan/20 text-wellness-cyan">
                 LIVE DEMO
               </Badge>
               <h2 className="text-4xl font-playfair font-semibold mb-4">
@@ -117,7 +117,7 @@ const Index = () => {
         <section id="tech" className="py-20 px-4">
           <div className="container mx-auto">
             <div className="text-center mb-16">
-              <Badge className="mb-4 bg-wellness-lavender/20 text-purple-700">
+              <Badge className="mb-4 bg-wellness-purple/20 text-wellness-purple">
                 TECHNICAL INNOVATION
               </Badge>
               <h2 className="text-4xl font-playfair font-semibold mb-4">
@@ -136,7 +136,7 @@ const Index = () => {
         <section className="py-20 px-4 bg-muted/30">
           <div className="container mx-auto">
             <div className="text-center mb-16">
-              <Badge className="mb-4 bg-wellness-sunset/20 text-orange-700">
+              <Badge className="mb-4 bg-wellness-orange/20 text-wellness-orange">
                 ACCESSIBILITY FIRST
               </Badge>
               <h2 className="text-4xl font-playfair font-semibold mb-4">
@@ -155,7 +155,7 @@ const Index = () => {
         <section id="impact" className="py-20 px-4">
           <div className="container mx-auto">
             <div className="text-center mb-16">
-              <Badge className="mb-4 bg-wellness-coral/20 text-red-600">
+              <Badge className="mb-4 bg-wellness-pink/20 text-wellness-pink">
                 REAL-WORLD IMPACT
               </Badge>
               <h2 className="text-4xl font-playfair font-semibold mb-4">
@@ -180,7 +180,7 @@ const Index = () => {
               Join the movement towards accessible, AI-powered daily mental health support.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-white text-wellness-forest hover:bg-white/90">
+              <Button size="lg" className="bg-white text-primary hover:bg-white/90">
                 Start Your Free Reset
               </Button>
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">

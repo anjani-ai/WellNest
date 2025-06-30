@@ -67,16 +67,16 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// WellNest custom wellness colors
+				// Modern vibrant wellness colors
 				wellness: {
-					mint: '#6FE5A7',
-					sage: '#7FB069',
-					ocean: '#4A90E2',
-					sunset: '#FFB74D',
-					lavender: '#B19CD9',
-					coral: '#FF6B6B',
-					forest: '#2E7D32',
-					sky: '#E3F2FD'
+					indigo: '#4F46E5',
+					purple: '#8B5CF6',
+					cyan: '#06B6D4',
+					emerald: '#10B981',
+					orange: '#FB923C',
+					pink: '#EC4899',
+					violet: '#7C3AED',
+					teal: '#14B8A6'
 				}
 			},
 			borderRadius: {
