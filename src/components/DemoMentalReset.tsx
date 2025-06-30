@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +28,8 @@ const DemoMentalReset = () => {
     if (isPlaying) {
       intervalId = setInterval(() => {
         setProgress((prevProgress) => {
-          const newProgress = prevProgress + 2;
+          // Increment by ~0.56% every second to reach 100% in 3 minutes (180 seconds)
+          const newProgress = prevProgress + (100 / 180);
           
           // Update stages based on progress
           if (newProgress >= 20 && newProgress < 40) {
@@ -55,7 +55,7 @@ const DemoMentalReset = () => {
           }
           return newProgress;
         });
-      }, 150);
+      }, 1000); // Update every 1 second instead of 150ms
     }
 
     return () => clearInterval(intervalId);
@@ -100,7 +100,9 @@ const DemoMentalReset = () => {
                 <Brain className="w-5 h-5 text-secondary" />
                 <span className="font-medium">Session Progress</span>
               </div>
-              <span className="text-sm text-muted-foreground font-medium">{Math.round(progress)}%</span>
+              <span className="text-sm text-muted-foreground font-medium">
+                {Math.round(progress)}% • {Math.round((180 * (100 - progress)) / 100)}s remaining
+              </span>
             </div>
             
             <Progress value={progress} className="h-3" />
