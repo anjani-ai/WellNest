@@ -1,73 +1,84 @@
-# Welcome to your Lovable project
+# 🌿 WellNest: Your AI Wellness Companion for Daily Mental Reset
 
-## Project info
+**WellNest** is a calming, AI-powered web app that guides users through a short daily "mental reset capsule"—a 3–5 minute experience combining emotion-aware journaling, personalized affirmations, and tiny wellness habits.
 
-**URL**: https://lovable.dev/projects/955bfa9d-96a8-497b-9dfa-142556b6d986
+---
 
-## How can I edit this code?
+## 🧠 Elevator Pitch
 
-There are several ways of editing your application.
+> *"Reset your mind in minutes—WellNest helps you emotionally declutter, reflect, and realign every day with the help of compassionate AI."*
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/955bfa9d-96a8-497b-9dfa-142556b6d986) and start prompting.
+## 💡 Problem Statement
 
-Changes made via Lovable will be committed automatically to this repo.
+In a fast-paced world, many people—especially students and young adults—lack the time or space for consistent emotional self-care. Traditional wellness tools can feel time-consuming, clinical, or inaccessible.
 
-**Use your preferred IDE**
+**WellNest bridges that gap** by offering a gentle, daily emotional reset that blends AI with mindfulness, empathy, and cultural inclusivity.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 👤 User Story
 
-Follow these steps:
+**As a** stressed university student,  
+**I want** a quick, judgment-free space to release my emotions and get grounded,  
+**so that** I can feel mentally refreshed and supported before continuing my day.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🔑 Key Features
 
-# Step 3: Install the necessary dependencies.
-npm i
+- 🎙️ **Emotion-Aware Journaling** via voice, text, or emoji  
+- 💬 **AI-generated Prompts & Affirmations** using GPT-4 or Gemini  
+- 🌱 **Micro-Habit Nudges**: hydration, gratitude, 1-min meditation, etc.  
+- 📊 **Passive Mood Inference** from input speed, tone, and sentiment  
+- 🌀 **Daily “Mental Reset Capsule”**—your personalized 5-minute session  
+- 🧘‍♂️ **Monthly Wellness Snapshots** as calming visuals (downloadable)  
+- 🌍 **Accessible Design**: Dark mode, large fonts, English + Hindi support  
+- 📲 **WhatsApp/SMS Mode** for low-accessibility users
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+---
 
-**Edit a file directly in GitHub**
+## 🎨 Color Palette
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+| Element       | Hex Code  | Description           |
+|---------------|-----------|-----------------------|
+| Background    | `#F1F6F4` | Mint Cream            |
+| Accent        | `#89C9B8` | Pastel Teal           |
+| Buttons       | `#4C5C68` | Cool Slate Gray       |
+| Text          | `#1E1E1E` | Almost Black          |
+| Highlights    | `#FFADAD` | Soft Coral (Warmth)   |
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🌍 Scalable Impact
 
-## What technologies are used for this project?
+WellNest is designed for use by:
+- Students and working professionals
+- Mental health NGOs and community centers
+- Schools and colleges (as a check-in tool)
+- Remote teams to support mental well-being
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 📸 Preview
 
-## How can I deploy this project?
+> _Figma UI and walkthrough coming soon!_
 
-Simply open [Lovable](https://lovable.dev/projects/955bfa9d-96a8-497b-9dfa-142556b6d986) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
+## 🤝 Contributing
 
-Yes, you can!
+We welcome contributions! If you’d like to suggest improvements or add a new feature (like integrations with wearables or meditation libraries), please open an issue or pull request.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 🧠 Built For
+
+This project was created for the **[StartWell Wellness-Tech Hackathon]** (May–June 2025), focused on creating holistic, AI-powered wellness solutions with real-world impact.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
