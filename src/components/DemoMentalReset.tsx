@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,14 +13,46 @@ const DemoMentalReset = () => {
   const [stageTitle, setStageTitle] = useState("Welcome to Your Mental Reset");
   const [stageDescription, setStageDescription] = useState("Let's take a moment to center ourselves and check in with your emotions.");
   const [isVoiceActive, setIsVoiceActive] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [breathingPhase, setBreathingPhase] = useState("inhale");
+  const [breathingCount, setBreathingCount] = useState(4);
+  const [secondsElapsed, setSecondsElapsed] = useState(0);
 
   const stages = [
-    { id: "welcome", title: "Welcome to Your Mental Reset", description: "Let's take a moment to center ourselves and check in with your emotions." },
-    { id: "checkin", title: "Emotional Check-in", description: "I sense you might be feeling a bit stressed. Let's work through this together." },
-    { id: "breathing", title: "Guided Breathing", description: "Follow along with this gentle breathing pattern to calm your nervous system." },
-    { id: "affirmation", title: "Personal Affirmation", description: "Here's an affirmation crafted specifically for your current emotional state." },
-    { id: "completion", title: "Reset Complete", description: "Well done! You've completed your 3-minute mental reset session." }
+    { 
+      id: "welcome", 
+      title: "Welcome to Your Mental Reset", 
+      description: "Let's take a moment to center ourselves and check in with your emotions.",
+      startTime: 0,
+      endTime: 20
+    },
+    { 
+      id: "checkin", 
+      title: "Emotional Check-in", 
+      description: "I sense you might be feeling a bit stressed. Let's acknowledge these feelings without judgment.",
+      startTime: 20,
+      endTime: 45
+    },
+    { 
+      id: "breathing", 
+      title: "Guided Breathing Exercise", 
+      description: "Follow along with this 4-7-8 breathing pattern to activate your parasympathetic nervous system.",
+      startTime: 45,
+      endTime: 120
+    },
+    { 
+      id: "affirmation", 
+      title: "Personal Affirmation & Grounding", 
+      description: "Here's a personalized affirmation to strengthen your emotional resilience.",
+      startTime: 120,
+      endTime: 165
+    },
+    { 
+      id: "completion", 
+      title: "Integration & Completion", 
+      description: "Well done! Take a moment to notice how you feel now compared to when you started.",
+      startTime: 165,
+      endTime: 180
+    }
   ];
 
   useEffect(() => {
@@ -27,39 +60,60 @@ const DemoMentalReset = () => {
 
     if (isPlaying) {
       intervalId = setInterval(() => {
-        setProgress((prevProgress) => {
-          // Increment by ~0.56% every second to reach 100% in 3 minutes (180 seconds)
-          const newProgress = prevProgress + (100 / 180);
+        setSecondsElapsed(prev => {
+          const newSeconds = prev + 1;
+          const newProgress = (newSeconds / 180) * 100;
           
-          // Update stages based on progress
-          if (newProgress >= 20 && newProgress < 40) {
-            setSessionStage("checkin");
-          } else if (newProgress >= 40 && newProgress < 70) {
-            setSessionStage("breathing");
-          } else if (newProgress >= 70 && newProgress < 95) {
-            setSessionStage("affirmation");
-          } else if (newProgress >= 95) {
-            setSessionStage("completion");
-          }
+          // Update stages based on time elapsed
+          const currentStage = stages.find(stage => 
+            newSeconds >= stage.startTime && newSeconds < stage.endTime
+          );
           
-          const currentStage = stages.find(s => s.id === sessionStage);
-          if (currentStage) {
+          if (currentStage && currentStage.id !== sessionStage) {
+            setSessionStage(currentStage.id);
             setStageTitle(currentStage.title);
             setStageDescription(currentStage.description);
           }
           
-          if (newProgress >= 100) {
+          setProgress(newProgress);
+          
+          if (newSeconds >= 180) {
             clearInterval(intervalId);
             setIsPlaying(false);
-            return 100;
+            return 180;
           }
-          return newProgress;
+          return newSeconds;
         });
-      }, 1000); // Update every 1 second instead of 150ms
+      }, 1000);
     }
 
     return () => clearInterval(intervalId);
   }, [isPlaying, sessionStage]);
+
+  // Breathing animation logic
+  useEffect(() => {
+    let breathingInterval: NodeJS.Timeout;
+    
+    if (isPlaying && sessionStage === "breathing") {
+      breathingInterval = setInterval(() => {
+        setBreathingCount(prev => {
+          if (breathingPhase === "inhale" && prev <= 1) {
+            setBreathingPhase("hold");
+            return 7;
+          } else if (breathingPhase === "hold" && prev <= 1) {
+            setBreathingPhase("exhale");
+            return 8;
+          } else if (breathingPhase === "exhale" && prev <= 1) {
+            setBreathingPhase("inhale");
+            return 4;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => clearInterval(breathingInterval);
+  }, [isPlaying, sessionStage, breathingPhase]);
 
   const togglePlay = () => {
     setIsPlaying(!isPlaying);
@@ -68,13 +122,35 @@ const DemoMentalReset = () => {
   const resetProgress = () => {
     setIsPlaying(false);
     setProgress(0);
+    setSecondsElapsed(0);
     setSessionStage("welcome");
     setStageTitle("Welcome to Your Mental Reset");
     setStageDescription("Let's take a moment to center ourselves and check in with your emotions.");
+    setBreathingPhase("inhale");
+    setBreathingCount(4);
   };
 
   const toggleVoice = () => {
     setIsVoiceActive(!isVoiceActive);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getBreathingInstruction = () => {
+    switch (breathingPhase) {
+      case "inhale":
+        return `Breathe in slowly... ${breathingCount}`;
+      case "hold":
+        return `Hold your breath... ${breathingCount}`;
+      case "exhale":
+        return `Breathe out slowly... ${breathingCount}`;
+      default:
+        return "Follow your natural breath";
+    }
   };
 
   return (
@@ -101,7 +177,7 @@ const DemoMentalReset = () => {
                 <span className="font-medium">Session Progress</span>
               </div>
               <span className="text-sm text-muted-foreground font-medium">
-                {Math.round(progress)}% • {Math.round((180 * (100 - progress)) / 100)}s remaining
+                {formatTime(secondsElapsed)} / 3:00 • {Math.round(progress)}%
               </span>
             </div>
             
@@ -109,56 +185,104 @@ const DemoMentalReset = () => {
           </div>
 
           {/* Session Content Based on Stage */}
-          <div className="bg-muted/30 rounded-xl p-6">
+          <div className="bg-muted/30 rounded-xl p-6 min-h-[300px] flex items-center justify-center">
             {sessionStage === "welcome" && (
               <div className="text-center space-y-4">
-                <Heart className="w-12 h-12 mx-auto text-accent animate-breathe" />
+                <Heart className="w-12 h-12 mx-auto text-accent animate-pulse" />
                 <p className="text-lg">Ready to begin your personalized mental wellness journey?</p>
+                <p className="text-sm text-muted-foreground">
+                  Take a comfortable position and allow yourself to be present in this moment.
+                </p>
               </div>
             )}
 
             {sessionStage === "checkin" && (
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
+              <div className="space-y-6 text-center">
+                <div className="flex items-center justify-center space-x-3">
                   <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
                     <Sparkles className="w-4 h-4 text-white" />
                   </div>
-                  <div className="text-sm">
-                    <strong>WellNest AI:</strong> I can sense some tension in your voice today. 
-                    Let's work through this with a gentle approach tailored just for you.
-                  </div>
+                </div>
+                <div className="space-y-4">
+                  <p className="text-lg">
+                    <strong>WellNest AI:</strong> Let's pause and acknowledge how you're feeling right now.
+                  </p>
+                  <p className="text-base text-muted-foreground">
+                    Whatever emotions you're experiencing - stress, anxiety, fatigue, or overwhelm - 
+                    they're valid and temporary. You're taking a positive step by being here.
+                  </p>
+                  <p className="text-sm italic">
+                    "It's okay to not be okay. What matters is that you're here, caring for yourself."
+                  </p>
                 </div>
               </div>
             )}
 
             {sessionStage === "breathing" && (
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 mx-auto rounded-full bg-secondary/20 flex items-center justify-center animate-breathe">
-                  <div className="w-8 h-8 rounded-full bg-secondary"></div>
+              <div className="text-center space-y-6">
+                <div className={`w-20 h-20 mx-auto rounded-full bg-secondary/20 flex items-center justify-center transition-all duration-1000 ${
+                  breathingPhase === "inhale" ? "scale-110" : 
+                  breathingPhase === "hold" ? "scale-110" : "scale-90"
+                }`}>
+                  <div className={`w-12 h-12 rounded-full bg-secondary transition-all duration-1000 ${
+                    breathingPhase === "inhale" ? "scale-110" : 
+                    breathingPhase === "hold" ? "scale-110" : "scale-75"
+                  }`}></div>
                 </div>
-                <p className="text-lg">Breathe in for 4... hold for 4... breathe out for 6...</p>
-                <p className="text-sm text-muted-foreground">Follow the gentle rhythm above</p>
+                <div className="space-y-2">
+                  <p className="text-xl font-medium">{getBreathingInstruction()}</p>
+                  <p className="text-sm text-muted-foreground">
+                    4-7-8 breathing activates your body's relaxation response
+                  </p>
+                </div>
+                <div className="bg-secondary/10 rounded-lg p-4">
+                  <p className="text-sm">
+                    This breathing pattern helps reduce cortisol levels and activates your parasympathetic nervous system, 
+                    naturally calming your mind and body.
+                  </p>
+                </div>
               </div>
             )}
 
             {sessionStage === "affirmation" && (
-              <div className="space-y-4 text-center">
+              <div className="space-y-6 text-center">
                 <MessageCircle className="w-10 h-10 mx-auto text-accent" />
-                <blockquote className="text-lg italic">
-                  "You have the strength to navigate today's challenges. 
-                  Your feelings are valid, and you're taking positive steps for your wellbeing."
-                </blockquote>
-                <p className="text-sm text-muted-foreground">Personalized affirmation based on your emotional pattern</p>
+                <div className="space-y-4">
+                  <blockquote className="text-xl italic font-medium">
+                    "I have the inner strength to handle today's challenges. 
+                    My feelings are temporary, but my resilience is lasting."
+                  </blockquote>
+                  <p className="text-base text-muted-foreground">
+                    Take a moment to really feel these words. Notice any tension leaving your body.
+                  </p>
+                  <div className="bg-accent/10 rounded-lg p-4">
+                    <p className="text-sm">
+                      <strong>Grounding technique:</strong> Name 3 things you can see, 2 things you can hear, 
+                      and 1 thing you can feel right now. This brings you fully into the present moment.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
             {sessionStage === "completion" && (
-              <div className="text-center space-y-4">
+              <div className="text-center space-y-6">
                 <div className="w-16 h-16 mx-auto rounded-full bg-accent/20 flex items-center justify-center">
                   <Heart className="w-8 h-8 text-accent" />
                 </div>
-                <p className="text-lg font-medium">Wonderful! You've completed your mental reset.</p>
-                <p className="text-sm text-muted-foreground">Your progress has been saved to your wellness snapshot.</p>
+                <div className="space-y-4">
+                  <p className="text-xl font-medium">Wonderful! You've completed your mental reset.</p>
+                  <p className="text-base text-muted-foreground">
+                    Take a moment to notice: How do you feel now compared to when you started?
+                  </p>
+                  <div className="bg-secondary/10 rounded-lg p-4 space-y-2">
+                    <p className="text-sm font-medium">Your progress has been saved to your wellness snapshot.</p>
+                    <p className="text-sm">
+                      Regular 3-minute resets like this can significantly improve your emotional regulation 
+                      and stress resilience over time.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
