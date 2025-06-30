@@ -57,26 +57,13 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
-				},
-				// Modern vibrant wellness colors
+				// Calm wellness colors
 				wellness: {
-					indigo: '#4F46E5',
-					purple: '#8B5CF6',
-					cyan: '#06B6D4',
-					emerald: '#10B981',
-					orange: '#FB923C',
-					pink: '#EC4899',
-					violet: '#7C3AED',
-					teal: '#14B8A6'
+					mint: '#F1F6F4',
+					teal: '#89C9B8',
+					slate: '#4C5C68',
+					coral: '#FFADAD',
+					dark: '#1E1E1E'
 				}
 			},
 			borderRadius: {
@@ -120,22 +107,13 @@ export default {
 						transform: 'scale(1.05)',
 						opacity: '1'
 					}
-				},
-				'pulse-slow': {
-					'0%, 100%': {
-						opacity: '1'
-					},
-					'50%': {
-						opacity: '0.7'
-					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.6s ease-out',
-				'breathe': 'breathe 4s ease-in-out infinite',
-				'pulse-slow': 'pulse-slow 3s ease-in-out infinite'
+				'breathe': 'breathe 4s ease-in-out infinite'
 			}
 		}
 	},

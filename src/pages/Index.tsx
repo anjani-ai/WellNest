@@ -8,9 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import HeroSection from "@/components/HeroSection";
 import FeatureShowcase from "@/components/FeatureShowcase";
 import DemoMentalReset from "@/components/DemoMentalReset";
-import TechArchitecture from "@/components/TechArchitecture";
-import AccessibilityFeatures from "@/components/AccessibilityFeatures";
-import ImpactMetrics from "@/components/ImpactMetrics";
 
 const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -46,8 +43,8 @@ const Index = () => {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full gradient-wellness flex items-center justify-center">
-              <Heart className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+              <Heart className="w-4 h-4 text-wellness-dark" />
             </div>
             <span className="font-playfair font-semibold text-xl">WellNest</span>
           </div>
@@ -55,7 +52,6 @@ const Index = () => {
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
             <a href="#features" className="hover:text-primary transition-colors">Features</a>
             <a href="#demo" className="hover:text-primary transition-colors">Demo</a>
-            <a href="#tech" className="hover:text-primary transition-colors">Technology</a>
             <a href="#impact" className="hover:text-primary transition-colors">Impact</a>
           </nav>
 
@@ -63,7 +59,7 @@ const Index = () => {
             <Button variant="ghost" size="icon" onClick={toggleDarkMode}>
               {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
-            <Button className="gradient-wellness text-white">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
               Start Your Reset
             </Button>
           </div>
@@ -74,19 +70,88 @@ const Index = () => {
         {/* Hero Section */}
         <HeroSection />
 
+        {/* Problem Statement & Value */}
+        <section className="py-16 px-4 bg-wellness-mint/20">
+          <div className="container mx-auto text-center">
+            <h2 className="text-3xl font-playfair font-semibold mb-6">
+              Mental wellness shouldn't be a luxury
+            </h2>
+            <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8">
+              <Card className="bg-card/80">
+                <CardHeader>
+                  <CardTitle className="text-lg text-wellness-coral">The Problem</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">
+                    70% of young adults struggle with daily stress but lack accessible, 
+                    personalized mental health support that fits their busy lives.
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-card/80">
+                <CardHeader>
+                  <CardTitle className="text-lg text-secondary">Our Solution</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">
+                    AI-powered 3-minute daily wellness sessions that adapt to your emotions, 
+                    accessible through voice, text, or emoji in English and Hindi.
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-card/80">
+                <CardHeader>
+                  <CardTitle className="text-lg text-primary">The Impact</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">
+                    Democratizing mental wellness through inclusive design, making daily 
+                    emotional support available to everyone, everywhere.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* User Story */}
+        <section className="py-16 px-4">
+          <div className="container mx-auto">
+            <div className="max-w-3xl mx-auto text-center">
+              <Badge className="mb-4 bg-accent/20 text-accent-foreground">
+                USER STORY
+              </Badge>
+              <blockquote className="text-xl italic text-muted-foreground leading-relaxed">
+                "As a college student juggling studies and part-time work, I need a quick, 
+                personalized way to check in with my mental health daily. I want something 
+                that understands my emotions through simple inputs and gives me actionable 
+                wellness activities that fit into my 5-minute study breaks."
+              </blockquote>
+              <div className="mt-6 flex items-center justify-center space-x-4">
+                <div className="w-12 h-12 rounded-full bg-secondary" />
+                <div className="text-left">
+                  <div className="font-semibold">Priya, 21</div>
+                  <div className="text-sm text-muted-foreground">Psychology Student, Mumbai</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Key Features */}
-        <section id="features" className="py-20 px-4">
+        <section id="features" className="py-20 px-4 bg-muted/30">
           <div className="container mx-auto">
             <div className="text-center mb-16">
-              <Badge className="mb-4 bg-wellness-indigo/20 text-wellness-indigo">
-                AI-POWERED WELLNESS
+              <Badge className="mb-4 bg-secondary/20 text-secondary-foreground">
+                CORE FEATURES
               </Badge>
               <h2 className="text-4xl font-playfair font-semibold mb-4">
-                Complete Mental Wellness Ecosystem
+                Your Daily Mental Wellness Toolkit
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Combining emotion-aware AI, micro-habit coaching, and accessibility-first design 
-                for meaningful daily mental health interventions.
+                AI-powered features designed for accessibility, emotional intelligence, and real impact.
               </p>
             </div>
             
@@ -95,10 +160,10 @@ const Index = () => {
         </section>
 
         {/* Interactive Demo */}
-        <section id="demo" className="py-20 px-4 bg-muted/50">
+        <section id="demo" className="py-20 px-4">
           <div className="container mx-auto">
             <div className="text-center mb-16">
-              <Badge className="mb-4 bg-wellness-cyan/20 text-wellness-cyan">
+              <Badge className="mb-4 bg-accent/20 text-accent-foreground">
                 LIVE DEMO
               </Badge>
               <h2 className="text-4xl font-playfair font-semibold mb-4">
@@ -113,92 +178,74 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Technology & Architecture */}
-        <section id="tech" className="py-20 px-4">
-          <div className="container mx-auto">
-            <div className="text-center mb-16">
-              <Badge className="mb-4 bg-wellness-purple/20 text-wellness-purple">
-                TECHNICAL INNOVATION
-              </Badge>
-              <h2 className="text-4xl font-playfair font-semibold mb-4">
-                Built for Scale & Impact
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Modern AI architecture with LangChain, GPT-4, vector databases, and accessibility-first design.
-              </p>
-            </div>
-            
-            <TechArchitecture />
-          </div>
-        </section>
-
-        {/* Accessibility Features */}
-        <section className="py-20 px-4 bg-muted/30">
-          <div className="container mx-auto">
-            <div className="text-center mb-16">
-              <Badge className="mb-4 bg-wellness-orange/20 text-wellness-orange">
-                ACCESSIBILITY FIRST
-              </Badge>
-              <h2 className="text-4xl font-playfair font-semibold mb-4">
-                Wellness for Everyone
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Designed for diverse needs with voice support, multilingual interface, and universal accessibility.
-              </p>
-            </div>
-            
-            <AccessibilityFeatures />
-          </div>
-        </section>
-
-        {/* Impact & Scalability */}
-        <section id="impact" className="py-20 px-4">
-          <div className="container mx-auto">
-            <div className="text-center mb-16">
-              <Badge className="mb-4 bg-wellness-pink/20 text-wellness-pink">
-                REAL-WORLD IMPACT
-              </Badge>
-              <h2 className="text-4xl font-playfair font-semibold mb-4">
-                Scaling Mental Wellness
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                From individual users to schools, startups, and NGOs - WellNest is designed for global impact.
-              </p>
-            </div>
-            
-            <ImpactMetrics />
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20 px-4 gradient-wellness">
+        {/* Project Value Summary */}
+        <section id="impact" className="py-20 px-4 bg-gradient-wellness">
           <div className="container mx-auto text-center">
             <h2 className="text-4xl font-playfair font-semibold text-white mb-6">
-              Ready to Transform Mental Wellness?
+              WellNest's Core Value
             </h2>
-            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Join the movement towards accessible, AI-powered daily mental health support.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-white text-primary hover:bg-white/90">
-                Start Your Free Reset
-              </Button>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                View GitHub Repository
-              </Button>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+              <div className="text-white">
+                <Brain className="w-12 h-12 mx-auto mb-4 opacity-90" />
+                <h3 className="font-semibold mb-2">AI-Powered Personalization</h3>
+                <p className="text-sm opacity-90">
+                  GPT-4 driven mental reset sessions that adapt to your unique emotional patterns
+                </p>
+              </div>
+              
+              <div className="text-white">
+                <Globe className="w-12 h-12 mx-auto mb-4 opacity-90" />
+                <h3 className="font-semibold mb-2">Inclusive by Design</h3>
+                <p className="text-sm opacity-90">
+                  Voice support, large fonts, English/Hindi, and culturally sensitive content
+                </p>
+              </div>
+              
+              <div className="text-white">
+                <Clock className="w-12 h-12 mx-auto mb-4 opacity-90" />
+                <h3 className="font-semibold mb-2">Micro-Intervention Focus</h3>
+                <p className="text-sm opacity-90">
+                  3-5 minute sessions that fit into any schedule, with lasting emotional impact
+                </p>
+              </div>
+              
+              <div className="text-white">
+                <Users className="w-12 h-12 mx-auto mb-4 opacity-90" />
+                <h3 className="font-semibold mb-2">Community Impact</h3>
+                <p className="text-sm opacity-90">
+                  Designed for schools, startups, and NGOs to democratize mental wellness
+                </p>
+              </div>
+            </div>
+            
+            <div className="max-w-2xl mx-auto">
+              <p className="text-lg text-white/90 mb-8">
+                <strong>WellNest transforms daily mental wellness from a privilege to a right,</strong> 
+                making emotionally intelligent AI support accessible to everyone through inclusive design, 
+                cultural sensitivity, and proven micro-intervention techniques.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button size="lg" className="bg-white text-primary hover:bg-white/90">
+                  Start Your Free Reset
+                </Button>
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                  Export Wellness Snapshot
+                </Button>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="py-12 px-4 border-t">
+      <footer className="py-12 px-4 border-t bg-muted/20">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 rounded-full gradient-wellness flex items-center justify-center">
-                  <Heart className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                  <Heart className="w-4 h-4 text-wellness-dark" />
                 </div>
                 <span className="font-playfair font-semibold text-lg">WellNest</span>
               </div>
@@ -208,38 +255,42 @@ const Index = () => {
             </div>
             
             <div>
-              <h4 className="font-semibold mb-3">Product</h4>
+              <h4 className="font-semibold mb-3">Features</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#features" className="hover:text-primary">Features</a></li>
-                <li><a href="#demo" className="hover:text-primary">Demo</a></li>
-                <li><a href="#tech" className="hover:text-primary">Technology</a></li>
-                <li><a href="#" className="hover:text-primary">API Docs</a></li>
+                <li>🎯 3-min Reset Sessions</li>
+                <li>🗣️ Voice & Emoji Input</li>
+                <li>🌱 Micro-habit Coaching</li>
+                <li>📊 Monthly Wellness Reports</li>
               </ul>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-3">Community</h4>
+              <h4 className="font-semibold mb-3">Accessibility</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary">GitHub</a></li>
-                <li><a href="#" className="hover:text-primary">Discord</a></li>
-                <li><a href="#" className="hover:text-primary">Twitter</a></li>
-                <li><a href="#" className="hover:text-primary">Blog</a></li>
+                <li>🌍 English & Hindi Support</li>
+                <li>🔊 Screen Reader Optimized</li>
+                <li>📱 WhatsApp Integration</li>
+                <li>🌙 Dark Mode Available</li>
               </ul>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-3">Support</h4>
+              <h4 className="font-semibold mb-3">Impact</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary">Help Center</a></li>
-                <li><a href="#" className="hover:text-primary">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-primary">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-primary">Contact</a></li>
+                <li>🏫 School Programs</li>
+                <li>🚀 Startup Wellness</li>
+                <li>🤝 NGO Partnerships</li>
+                <li>💚 Community Health</li>
               </ul>
             </div>
           </div>
           
           <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 WellNest. Built for the Health Hackathon 2024. Making mental wellness accessible to all.</p>
+            <p>
+              <strong>"Your daily mental reset, personalized by AI, accessible to all"</strong>
+              <br />
+              &copy; 2024 WellNest. Built for inclusive mental wellness.
+            </p>
           </div>
         </div>
       </footer>
