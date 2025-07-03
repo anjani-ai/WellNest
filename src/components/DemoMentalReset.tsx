@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Heart, Sparkles, MessageCircle, Mic, Play, Pause, RotateCcw, Brain, Clock, MicOff, RefreshCw, Cloud, Sun, Download, Globe, Target } from "lucide-react";
+import { Heart, Sparkles, MessageCircle, Mic, Play, Pause, RotateCcw, Brain, MicOff, RefreshCw, Download, Target, AlertTriangle, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuotes } from "@/hooks/useQuotes";
-import { useWeather } from "@/hooks/useWeather";
+import { useTriggerDetection } from "@/hooks/useTriggerDetection";
 import { useMoodTracking } from "@/hooks/useMoodTracking";
 import { useHabitCoaching } from "@/hooks/useHabitCoaching";
 import { useWellnessExport } from "@/hooks/useWellnessExport";
@@ -36,9 +36,9 @@ const DemoMentalReset = () => {
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
 
-  // Existing API hooks
+  // Updated hooks - replacing weather with trigger detection
   const { quote, isLoading: quoteLoading, error: quoteError, refetchQuote } = useQuotes();
-  const { weather, suggestion, isLoading: weatherLoading, error: weatherError, fetchWeather } = useWeather();
+  const { analysis, response: triggerResponse, isAnalyzing, analyzeInput } = useTriggerDetection();
   const { saveMood, loadStats, stats, isLoading: moodLoading } = useMoodTracking();
   
   // New API hooks
@@ -90,7 +90,6 @@ const DemoMentalReset = () => {
   useEffect(() => {
     console.log('DemoMentalReset component mounted, loading initial data...');
     loadStats();
-    fetchWeather();
   }, []);
 
   // Initialize speech recognition
@@ -204,6 +203,9 @@ const DemoMentalReset = () => {
   }, [isPlaying, sessionStage, breathingPhase]);
 
   const generatePersonalizedResponse = async (input: string) => {
+    // Analyze triggers first
+    await analyzeInput(input);
+    
     const responses = {
       stressed: currentLanguage === 'hi' 
         ? "मैं समझ रहा हूं कि आप तनाव महसूस कर रहे हैं। यह बिल्कुल वैध है - तनाव आपके शरीर का यह बताने का तरीका है कि कुछ ध्यान देने की जरूरत है।"
@@ -414,22 +416,25 @@ const DemoMentalReset = () => {
       
       <CardContent className="p-8">
         <div className="space-y-6">
-          {/* Real-time Data Section */}
+          {/* Updated Real-time Data Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/20 rounded-lg">
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <Sun className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm font-medium">Weather-Based Suggestion</span>
-                {weatherLoading && <RefreshCw className="w-3 h-3 animate-spin" />}
+                <Shield className="w-4 h-4 text-blue-500" />
+                <span className="text-sm font-medium">AI Trigger Analysis</span>
+                {isAnalyzing && <RefreshCw className="w-3 h-3 animate-spin" />}
               </div>
-              {suggestion ? (
-                <p className="text-xs text-muted-foreground">{suggestion.suggestion}</p>
-              ) : weatherError ? (
-                <p className="text-xs text-red-500">Weather data unavailable</p>
+              {triggerResponse ? (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">{triggerResponse.message}</p>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant={triggerResponse.urgency === 'high' ? 'destructive' : triggerResponse.urgency === 'medium' ? 'default' : 'secondary'} className="text-xs">
+                      {triggerResponse.category} - {triggerResponse.severity}
+                    </Badge>
+                  </div>
+                </div>
               ) : (
-                <Button size="sm" variant="outline" onClick={fetchWeather} disabled={weatherLoading}>
-                  Get Weather Suggestion
-                </Button>
+                <p className="text-xs text-muted-foreground">Share your feelings to get personalized support</p>
               )}
             </div>
             
@@ -450,6 +455,40 @@ const DemoMentalReset = () => {
               )}
             </div>
           </div>
+
+          {/* Trigger Response Section */}
+          {triggerResponse && (
+            <div className={`rounded-lg p-4 border ${
+              triggerResponse.urgency === 'high' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' :
+              triggerResponse.urgency === 'medium' ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' :
+              'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+            }`}>
+              <div className="flex items-center space-x-2 mb-3">
+                {triggerResponse.urgency === 'high' && <AlertTriangle className="w-5 h-5 text-red-600" />}
+                <h3 className={`font-semibold ${
+                  triggerResponse.urgency === 'high' ? 'text-red-800 dark:text-red-200' :
+                  triggerResponse.urgency === 'medium' ? 'text-yellow-800 dark:text-yellow-200' :
+                  'text-blue-800 dark:text-blue-200'
+                }`}>
+                  Personalized Support Suggestions
+                </h3>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">{triggerResponse.message}</p>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Recommended actions:</p>
+                  <ul className="text-sm space-y-1">
+                    {triggerResponse.suggestions.map((suggestion, index) => (
+                      <li key={index} className="flex items-start space-x-2">
+                        <span className="text-green-600 mt-1">•</span>
+                        <span>{suggestion}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Micro-Habit Suggestion */}
           {showHabitSuggestion && habitSuggestion && (
@@ -509,16 +548,6 @@ const DemoMentalReset = () => {
                     }
                   </p>
                 </div>
-                {weather && (
-                  <div className="bg-blue/10 rounded-lg p-3">
-                    <p className="text-xs">
-                      🌤️ {currentLanguage === 'hi' 
-                        ? `वर्तमान मौसम: ${Math.round(weather.main.temp)}°C - मानसिक रीसेट के लिए बिल्कुल सही!`
-                        : `Current weather: ${Math.round(weather.main.temp)}°C - Perfect for a mental reset!`
-                      }
-                    </p>
-                  </div>
-                )}
               </div>
             )}
 
@@ -742,7 +771,7 @@ const DemoMentalReset = () => {
             </Button>
           </div>
 
-          {/* Status Indicators with API feedback */}
+          {/* Updated Status Indicators */}
           <div className="text-center space-y-2">
             {isVoiceActive && (
               <p className="text-sm text-accent">🎤 {currentLanguage === 'hi' ? 'आवाज मार्गदर्शन सक्रिय' : 'Voice guidance active'}</p>
@@ -755,6 +784,17 @@ const DemoMentalReset = () => {
             )}
             {moodLoading && (
               <p className="text-sm text-blue-500">💾 {currentLanguage === 'hi' ? 'आपका कल्याण डेटा सहेज रहा है...' : 'Saving your wellness data...'}</p>
+            )}
+            {isAnalyzing && (
+              <p className="text-sm text-blue-500">🧠 {currentLanguage === 'hi' ? 'आपकी भावनाओं का विश्लेषण कर रहा है...' : 'Analyzing your emotional state...'}</p>
+            )}
+            {triggerResponse && (
+              <p className="text-sm text-green-600">
+                ✓ {currentLanguage === 'hi' 
+                  ? `व्यक्तिगत सहायता सुझाव तैयार (${triggerResponse.category})`
+                  : `Personalized support suggestions ready (${triggerResponse.category})`
+                }
+              </p>
             )}
             {stats && (
               <p className="text-sm text-muted-foreground">
