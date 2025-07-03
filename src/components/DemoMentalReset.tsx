@@ -3,13 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Heart, Sparkles, MessageCircle, Mic, Play, Pause, RotateCcw, Brain, Clock, MicOff, RefreshCw, Cloud, Sun } from "lucide-react";
+import { Heart, Sparkles, MessageCircle, Mic, Play, Pause, RotateCcw, Brain, Clock, MicOff, RefreshCw, Cloud, Sun, Download, Globe, Target } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuotes } from "@/hooks/useQuotes";
 import { useWeather } from "@/hooks/useWeather";
 import { useMoodTracking } from "@/hooks/useMoodTracking";
+import { useHabitCoaching } from "@/hooks/useHabitCoaching";
+import { useWellnessExport } from "@/hooks/useWellnessExport";
+import { getCurrentLanguage, setLanguage, getTranslation, getSupportedLanguages, SupportedLanguage } from "@/services/languageApi";
 
 const DemoMentalReset = () => {
+  // Existing state
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [sessionStage, setSessionStage] = useState("welcome");
@@ -24,48 +28,59 @@ const DemoMentalReset = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [personalizedMessage, setPersonalizedMessage] = useState("");
   
+  // New state for additional features
+  const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>(getCurrentLanguage());
+  const [showHabitSuggestion, setShowHabitSuggestion] = useState(false);
+  
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
 
-  // API hooks
+  // Existing API hooks
   const { quote, isLoading: quoteLoading, error: quoteError, refetchQuote } = useQuotes();
   const { weather, suggestion, isLoading: weatherLoading, error: weatherError, fetchWeather } = useWeather();
   const { saveMood, loadStats, stats, isLoading: moodLoading } = useMoodTracking();
+  
+  // New API hooks
+  const { suggestion: habitSuggestion, getPersonalizedSuggestion, markHabitCompleted, isLoading: habitLoading } = useHabitCoaching();
+  const { snapshot, generateSnapshot, exportData, isLoading: exportLoading } = useWellnessExport();
+
+  // Get translations
+  const t = getTranslation(currentLanguage);
 
   const stages = [
     { 
       id: "welcome", 
       title: "Welcome to Your Mental Reset", 
-      description: "Take a deep breath. You've given yourself the gift of 3 minutes for your mental wellness.",
+      description: t.welcome,
       startTime: 0,
       endTime: 30
     },
     { 
       id: "checkin", 
       title: "Emotional Check-in", 
-      description: "How are you feeling right now? Share what's on your mind - there's no judgment here.",
+      description: t.checkin,
       startTime: 30,
       endTime: 75
     },
     { 
       id: "breathing", 
       title: "Guided Breathing Exercise", 
-      description: "Let's reset your nervous system together. Follow the breathing pattern - inhale for 4, hold for 7, exhale for 8.",
+      description: t.breathing,
       startTime: 75,
       endTime: 135
     },
     { 
       id: "affirmation", 
       title: "Personal Affirmation & Grounding", 
-      description: "You've shown up for yourself today. Here's a reminder of your inner strength.",
+      description: t.affirmation,
       startTime: 135,
       endTime: 165
     },
     { 
       id: "completion", 
       title: "Integration & Completion", 
-      description: "Notice the shift in how you feel. You've successfully completed your mental reset.",
+      description: t.completion,
       startTime: 165,
       endTime: 180
     }
@@ -85,7 +100,7 @@ const DemoMentalReset = () => {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = 'en-US';
+      recognitionRef.current.lang = currentLanguage === 'hi' ? 'hi-IN' : 'en-US';
 
       recognitionRef.current.onresult = async (event: any) => {
         const transcript = event.results[0][0].transcript;
@@ -117,7 +132,7 @@ const DemoMentalReset = () => {
         recognitionRef.current.stop();
       }
     };
-  }, []);
+  }, [currentLanguage]);
 
   // Main session timer
   useEffect(() => {
@@ -142,6 +157,7 @@ const DemoMentalReset = () => {
               const utterance = new SpeechSynthesisUtterance(currentStage.description);
               utterance.rate = 0.8;
               utterance.pitch = 1;
+              utterance.lang = currentLanguage === 'hi' ? 'hi-IN' : 'en-US';
               synthRef.current.speak(utterance);
             }
           }
@@ -160,7 +176,7 @@ const DemoMentalReset = () => {
     }
 
     return () => clearInterval(intervalId);
-  }, [isPlaying, sessionStage, isVoiceActive]);
+  }, [isPlaying, sessionStage, isVoiceActive, currentLanguage]);
 
   // Breathing animation logic
   useEffect(() => {
@@ -189,46 +205,52 @@ const DemoMentalReset = () => {
 
   const generatePersonalizedResponse = async (input: string) => {
     const responses = {
-      stressed: "I hear that you're feeling stressed. That's completely valid - stress is your body's way of telling you something needs attention. You're taking the right step by being here.",
-      anxious: "Anxiety can feel overwhelming, but you're safe right now. Let's work together to bring you back to the present moment where you have control.",
-      tired: "Mental fatigue is real and important to acknowledge. By taking these few minutes, you're actually recharging your emotional batteries.",
-      overwhelmed: "When everything feels like too much, remember: you don't have to solve everything right now. Focus on this moment, this breath.",
-      sad: "Sadness is a natural emotion that shows your capacity for deep feeling. Allow yourself to experience it without judgment - you're being brave.",
-      angry: "Anger often masks hurt or frustration. It's okay to feel this way. Let's channel this energy toward your healing and well-being.",
-      default: "Thank you for sharing. Your feelings are valid, and you deserve this moment of care and attention. Let's continue your reset together."
+      stressed: currentLanguage === 'hi' 
+        ? "मैं समझ रहा हूं कि आप तनाव महसूस कर रहे हैं। यह बिल्कुल वैध है - तनाव आपके शरीर का यह बताने का तरीका है कि कुछ ध्यान देने की जरूरत है।"
+        : "I hear that you're feeling stressed. That's completely valid - stress is your body's way of telling you something needs attention.",
+      anxious: currentLanguage === 'hi'
+        ? "चिंता भारी लग सकती है, लेकिन आप अभी सुरक्षित हैं। आइए मिलकर आपको वर्तमान क्षण में वापस लाते हैं।"
+        : "Anxiety can feel overwhelming, but you're safe right now. Let's work together to bring you back to the present moment.",
+      tired: currentLanguage === 'hi'
+        ? "मानसिक थकान वास्तविक है और इसे स्वीकार करना महत्वपूर्ण है। ये कुछ मिनट लेकर आप वास्तव में अपनी भावनात्मक बैटरी रिचार्ज कर रहे हैं।"
+        : "Mental fatigue is real and important to acknowledge. By taking these few minutes, you're actually recharging your emotional batteries.",
+      default: currentLanguage === 'hi'
+        ? "साझा करने के लिए धन्यवाद। आपकी भावनाएं वैध हैं, और आप देखभाल और ध्यान के इस क्षण के हकदार हैं।"
+        : "Thank you for sharing. Your feelings are valid, and you deserve this moment of care and attention."
     };
 
     const lowerInput = input.toLowerCase();
     let response = responses.default;
+    let detectedMood = 'mixed';
 
-    if (lowerInput.includes('stress') || lowerInput.includes('stressed')) response = responses.stressed;
-    else if (lowerInput.includes('anxious') || lowerInput.includes('anxiety') || lowerInput.includes('worry')) response = responses.anxious;
-    else if (lowerInput.includes('tired') || lowerInput.includes('exhausted') || lowerInput.includes('fatigue')) response = responses.tired;
-    else if (lowerInput.includes('overwhelmed') || lowerInput.includes('too much')) response = responses.overwhelmed;
-    else if (lowerInput.includes('sad') || lowerInput.includes('down') || lowerInput.includes('depressed')) response = responses.sad;
-    else if (lowerInput.includes('angry') || lowerInput.includes('mad') || lowerInput.includes('frustrated')) response = responses.angry;
+    if (lowerInput.includes('stress') || lowerInput.includes('stressed') || lowerInput.includes('तनाव')) {
+      response = responses.stressed;
+      detectedMood = 'stressed';
+    } else if (lowerInput.includes('anxious') || lowerInput.includes('anxiety') || lowerInput.includes('चिंता')) {
+      response = responses.anxious;
+      detectedMood = 'anxious';
+    } else if (lowerInput.includes('tired') || lowerInput.includes('exhausted') || lowerInput.includes('थका')) {
+      response = responses.tired;
+      detectedMood = 'tired';
+    }
 
     setPersonalizedMessage(response);
 
-    // Save mood entry via API
+    // Save mood entry and get personalized habit suggestion
     try {
-      const mood = lowerInput.includes('stress') ? 'stressed' :
-                   lowerInput.includes('anxious') ? 'anxious' :
-                   lowerInput.includes('tired') ? 'tired' :
-                   lowerInput.includes('overwhelmed') ? 'overwhelmed' :
-                   lowerInput.includes('sad') ? 'sad' :
-                   lowerInput.includes('angry') ? 'angry' : 'mixed';
-      
-      await saveMood(mood, ['Mental Reset Session'], input);
-      console.log('Mood data saved to API');
+      await saveMood(detectedMood, ['Mental Reset Session'], input);
+      await getPersonalizedSuggestion(detectedMood, ['Mental Reset Session']);
+      setShowHabitSuggestion(true);
+      console.log('Mood data saved and habit suggestion generated');
     } catch (error) {
-      console.error('Failed to save mood data:', error);
+      console.error('Failed to save mood data or get habit suggestion:', error);
     }
 
     if (isVoiceActive && synthRef.current) {
       const utterance = new SpeechSynthesisUtterance(response);
       utterance.rate = 0.8;
       utterance.pitch = 1;
+      utterance.lang = currentLanguage === 'hi' ? 'hi-IN' : 'en-US';
       synthRef.current.speak(utterance);
     }
   };
@@ -267,11 +289,12 @@ const DemoMentalReset = () => {
     setSecondsElapsed(0);
     setSessionStage("welcome");
     setStageTitle("Welcome to Your Mental Reset");
-    setStageDescription("Let's take a moment to center ourselves and check in with your emotions.");
+    setStageDescription(t.welcome);
     setBreathingPhase("inhale");
     setBreathingCount(4);
     setUserInput("");
     setPersonalizedMessage("");
+    setShowHabitSuggestion(false);
     
     if (synthRef.current) {
       synthRef.current.cancel();
@@ -305,6 +328,20 @@ const DemoMentalReset = () => {
     }
   };
 
+  const handleLanguageChange = (newLanguage: SupportedLanguage) => {
+    setLanguage(newLanguage);
+    setCurrentLanguage(newLanguage);
+    toast({
+      title: newLanguage === 'hi' ? "भाषा बदली गई" : "Language Changed",
+      description: newLanguage === 'hi' ? "हिंदी में स्विच किया गया" : "Switched to English",
+    });
+  };
+
+  const handleExportData = async () => {
+    await generateSnapshot();
+    await exportData();
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -312,13 +349,14 @@ const DemoMentalReset = () => {
   };
 
   const getBreathingInstruction = () => {
+    const instructions = t.breathing_instructions;
     switch (breathingPhase) {
       case "inhale":
-        return `Breathe in slowly through your nose... ${breathingCount}`;
+        return `${instructions.inhale}... ${breathingCount}`;
       case "hold":
-        return `Hold your breath gently... ${breathingCount}`;
+        return `${instructions.hold}... ${breathingCount}`;
       case "exhale":
-        return `Exhale slowly through your mouth... ${breathingCount}`;
+        return `${instructions.exhale}... ${breathingCount}`;
       default:
         return "Follow your natural breath";
     }
@@ -326,15 +364,16 @@ const DemoMentalReset = () => {
 
   const getAffirmationMessage = () => {
     if (personalizedMessage) {
-      return `Based on what you shared: "${personalizedMessage}" Remember, you have the strength to navigate whatever you're facing.`;
+      return `${personalizedMessage} ${currentLanguage === 'hi' ? 'याद रखें, आपमें जो भी सामना कर रहे हैं उससे निपटने की शक्ति है।' : 'Remember, you have the strength to navigate whatever you\'re facing.'}`;
     }
 
-    // Use real quote from API if available
     if (quote && !quoteLoading) {
-      return `"${quote.content}" - ${quote.author}. You are resilient and have everything within you to handle today's challenges.`;
+      return `"${quote.content}" - ${quote.author}. ${currentLanguage === 'hi' ? 'आप लचीले हैं और आपके पास आज की चुनौतियों से निपटने के लिए सब कुछ है।' : 'You are resilient and have everything within you to handle today\'s challenges.'}`;
     }
 
-    return "You are resilient. You have everything within you to handle today's challenges. Your worth isn't determined by your productivity or performance.";
+    return currentLanguage === 'hi' 
+      ? "आप लचीले हैं। आपके पास आज की चुनौतियों से निपटने के लिए सब कुछ है। आपकी कीमत आपकी उत्पादकता या प्रदर्शन से निर्धारित नहीं होती।"
+      : "You are resilient. You have everything within you to handle today's challenges. Your worth isn't determined by your productivity or performance.";
   };
 
   return (
@@ -354,6 +393,21 @@ const DemoMentalReset = () => {
                 {stats.totalSessions} sessions completed
               </Badge>
             )}
+            
+            {/* Language Selector */}
+            <div className="flex space-x-1">
+              {getSupportedLanguages().map((lang) => (
+                <Button
+                  key={lang.code}
+                  size="sm"
+                  variant={currentLanguage === lang.code ? "default" : "outline"}
+                  onClick={() => handleLanguageChange(lang.code)}
+                  className="px-2 py-1 text-xs"
+                >
+                  {lang.nativeName}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -397,6 +451,29 @@ const DemoMentalReset = () => {
             </div>
           </div>
 
+          {/* Micro-Habit Suggestion */}
+          {showHabitSuggestion && habitSuggestion && (
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+              <div className="flex items-center space-x-2 mb-3">
+                <Target className="w-5 h-5 text-green-600" />
+                <h3 className="font-semibold text-green-800 dark:text-green-200">Personalized Micro-Habit</h3>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-medium">{habitSuggestion.habit.title} ({habitSuggestion.habit.duration})</h4>
+                <p className="text-sm text-muted-foreground">{habitSuggestion.habit.description}</p>
+                <p className="text-sm">{habitSuggestion.reason}</p>
+                <p className="text-sm italic text-green-700 dark:text-green-300">{habitSuggestion.personalizedTip}</p>
+                <Button 
+                  size="sm" 
+                  onClick={() => markHabitCompleted(habitSuggestion.habit.id)}
+                  className="mt-2"
+                >
+                  Mark as Completed
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Progress Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -417,19 +494,28 @@ const DemoMentalReset = () => {
             {sessionStage === "welcome" && (
               <div className="text-center space-y-4">
                 <Heart className="w-12 h-12 mx-auto text-accent animate-pulse" />
-                <p className="text-lg">Welcome to your personal mental wellness space.</p>
+                <p className="text-lg">{currentLanguage === 'hi' ? 'आपके व्यक्तिगत मानसिक कल्याण स्थान में आपका स्वागत है।' : 'Welcome to your personal mental wellness space.'}</p>
                 <p className="text-sm text-muted-foreground">
-                  For the next 3 minutes, this is your time. Put aside distractions and be present with yourself.
+                  {currentLanguage === 'hi' 
+                    ? 'अगले 3 मिनट के लिए, यह आपका समय है। विक्षेपों को एक तरफ रखें और अपने साथ उपस्थित रहें।'
+                    : 'For the next 3 minutes, this is your time. Put aside distractions and be present with yourself.'
+                  }
                 </p>
                 <div className="bg-accent/10 rounded-lg p-4">
                   <p className="text-sm">
-                    💡 <strong>Tip:</strong> Find a comfortable position, take a deep breath, and let yourself arrive in this moment.
+                    💡 <strong>{currentLanguage === 'hi' ? 'सुझाव:' : 'Tip:'}</strong> {currentLanguage === 'hi' 
+                      ? 'एक आरामदायक स्थिति खोजें, एक गहरी सांस लें, और खुद को इस क्षण में आने दें।'
+                      : 'Find a comfortable position, take a deep breath, and let yourself arrive in this moment.'
+                    }
                   </p>
                 </div>
                 {weather && (
                   <div className="bg-blue/10 rounded-lg p-3">
                     <p className="text-xs">
-                      🌤️ Current weather: {Math.round(weather.main.temp)}°C - Perfect for a mental reset!
+                      🌤️ {currentLanguage === 'hi' 
+                        ? `वर्तमान मौसम: ${Math.round(weather.main.temp)}°C - मानसिक रीसेट के लिए बिल्कुल सही!`
+                        : `Current weather: ${Math.round(weather.main.temp)}°C - Perfect for a mental reset!`
+                      }
                     </p>
                   </div>
                 )}
@@ -445,11 +531,13 @@ const DemoMentalReset = () => {
                 </div>
                 <div className="space-y-4">
                   <p className="text-lg">
-                    <strong>How are you feeling right now?</strong>
+                    <strong>{currentLanguage === 'hi' ? 'आप अभी कैसा महसूस कर रहे हैं?' : 'How are you feeling right now?'}</strong>
                   </p>
                   <p className="text-base text-muted-foreground">
-                    Take a moment to check in with yourself. What emotions are you experiencing? 
-                    What thoughts are on your mind? Your response will be saved to track your wellness journey.
+                    {currentLanguage === 'hi' 
+                      ? 'अपने साथ जांच करने के लिए एक क्षण लें। आप कौन सी भावनाएं अनुभव कर रहे हैं? आपके दिमाग में क्या विचार हैं? आपकी प्रतिक्रिया आपकी कल्याण यात्रा को ट्रैक करने के लिए सहेजी जाएगी।'
+                      : 'Take a moment to check in with yourself. What emotions are you experiencing? What thoughts are on your mind? Your response will be saved to track your wellness journey.'
+                    }
                   </p>
                   
                   <div className="space-y-3">
@@ -461,24 +549,24 @@ const DemoMentalReset = () => {
                       {isRecording ? (
                         <>
                           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-2" />
-                          Listening...
+                          {currentLanguage === 'hi' ? 'सुन रहा है...' : 'Listening...'}
                         </>
                       ) : moodLoading ? (
                         <>
                           <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                          Saving...
+                          {currentLanguage === 'hi' ? 'सहेज रहा है...' : 'Saving...'}
                         </>
                       ) : (
                         <>
                           <Mic className="w-4 h-4 mr-2" />
-                          Share Your Feelings
+                          {t.buttons.share}
                         </>
                       )}
                     </Button>
                     
                     {userInput && (
                       <div className="bg-accent/10 rounded-lg p-4 text-left">
-                        <p className="text-sm font-medium mb-2">You shared:</p>
+                        <p className="text-sm font-medium mb-2">{currentLanguage === 'hi' ? 'आपने साझा किया:' : 'You shared:'}</p>
                         <p className="text-sm italic">"{userInput}"</p>
                       </div>
                     )}
@@ -507,13 +595,18 @@ const DemoMentalReset = () => {
                 <div className="space-y-2">
                   <p className="text-xl font-medium">{getBreathingInstruction()}</p>
                   <p className="text-sm text-muted-foreground">
-                    4-7-8 breathing activates your body's natural relaxation response
+                    {currentLanguage === 'hi' 
+                      ? '4-7-8 सांस लेना आपके शरीर की प्राकृतिक विश्राम प्रतिक्रिया को सक्रिय करता है'
+                      : '4-7-8 breathing activates your body\'s natural relaxation response'
+                    }
                   </p>
                 </div>
                 <div className="bg-secondary/10 rounded-lg p-4 max-w-md mx-auto">
                   <p className="text-sm">
-                    <strong>Science:</strong> This breathing pattern stimulates your vagus nerve, 
-                    reducing cortisol and activating your parasympathetic nervous system for instant calm.
+                    <strong>{currentLanguage === 'hi' ? 'विज्ञान:' : 'Science:'}</strong> {currentLanguage === 'hi' 
+                      ? 'यह सांस लेने का पैटर्न आपकी वेगस तंत्रिका को उत्तेजित करता है, कॉर्टिसोल को कम करता है और तुरंत शांति के लिए आपके पैरासिम्पैथेटिक तंत्रिका तंत्र को सक्रिय करता है।'
+                      : 'This breathing pattern stimulates your vagus nerve, reducing cortisol and activating your parasympathetic nervous system for instant calm.'
+                    }
                   </p>
                 </div>
               </div>
@@ -527,16 +620,30 @@ const DemoMentalReset = () => {
                     {getAffirmationMessage()}
                   </blockquote>
                   <div className="bg-accent/10 rounded-lg p-4">
-                    <p className="text-sm font-medium mb-2">Grounding Exercise:</p>
+                    <p className="text-sm font-medium mb-2">{currentLanguage === 'hi' ? 'ग्राउंडिंग एक्सरसाइज:' : 'Grounding Exercise:'}</p>
                     <p className="text-sm">
-                      Right now, name: <br />
-                      • 3 things you can see around you <br />
-                      • 2 sounds you can hear <br />
-                      • 1 thing you can physically feel
+                      {currentLanguage === 'hi' ? (
+                        <>
+                          अभी, नाम बताएं: <br />
+                          • 3 चीजें जो आप अपने आसपास देख सकते हैं <br />
+                          • 2 आवाजें जो आप सुन सकते हैं <br />
+                          • 1 चीज जो आप शारीरिक रूप से महसूस कर सकते हैं
+                        </>
+                      ) : (
+                        <>
+                          Right now, name: <br />
+                          • 3 things you can see around you <br />
+                          • 2 sounds you can hear <br />
+                          • 1 thing you can physically feel
+                        </>
+                      )}
                     </p>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    This brings you fully into the present moment, where you have power and choice.
+                    {currentLanguage === 'hi' 
+                      ? 'यह आपको वर्तमान क्षण में पूरी तरह से लाता है, जहां आपके पास शक्ति और विकल्प है।'
+                      : 'This brings you fully into the present moment, where you have power and choice.'
+                    }
                   </p>
                 </div>
               </div>
@@ -548,29 +655,37 @@ const DemoMentalReset = () => {
                   <Heart className="w-8 h-8 text-accent" />
                 </div>
                 <div className="space-y-4">
-                  <p className="text-xl font-medium">You did it! Your mental reset is complete.</p>
+                  <p className="text-xl font-medium">{currentLanguage === 'hi' ? 'आपने कर दिया! आपका मानसिक रीसेट पूरा हो गया।' : 'You did it! Your mental reset is complete.'}</p>
                   <p className="text-base text-muted-foreground">
-                    Take a moment to notice: How do you feel now compared to 3 minutes ago?
+                    {currentLanguage === 'hi' 
+                      ? 'एक क्षण रुकें और देखें: 3 मिनट पहले की तुलना में आप अब कैसा महसूस करते हैं?'
+                      : 'Take a moment to notice: How do you feel now compared to 3 minutes ago?'
+                    }
                   </p>
                   <div className="bg-secondary/10 rounded-lg p-4 space-y-2">
-                    <p className="text-sm font-medium">✨ What you accomplished:</p>
+                    <p className="text-sm font-medium">✨ {currentLanguage === 'hi' ? 'आपने जो हासिल किया:' : 'What you accomplished:'}</p>
                     <ul className="text-sm text-left space-y-1">
-                      <li>• Practiced emotional awareness and self-compassion</li>
-                      <li>• Activated your body's natural stress-relief system</li>
-                      <li>• Reinforced positive neural pathways</li>
-                      <li>• Your data has been saved to track your wellness journey</li>
+                      <li>• {currentLanguage === 'hi' ? 'भावनात्मक जागरूकता और आत्म-करुणा का अभ्यास किया' : 'Practiced emotional awareness and self-compassion'}</li>
+                      <li>• {currentLanguage === 'hi' ? 'आपके शरीर के प्राकृतिक तनाव-राहत सिस्टम को सक्रिय किया' : 'Activated your body\'s natural stress-relief system'}</li>
+                      <li>• {currentLanguage === 'hi' ? 'सकारात्मक न्यूरल पाथवे को मजबूत किया' : 'Reinforced positive neural pathways'}</li>
+                      <li>• {currentLanguage === 'hi' ? 'आपका डेटा आपकी कल्याण यात्रा को ट्रैक करने के लिए सहेजा गया है' : 'Your data has been saved to track your wellness journey'}</li>
                     </ul>
                   </div>
                   {stats && (
                     <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
                       <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                        🎯 You now have {stats.totalSessions + 1} completed sessions! 
-                        {stats.streak > 0 && ` Your current streak: ${stats.streak} days.`}
+                        🎯 {currentLanguage === 'hi' 
+                          ? `अब आपके पास ${stats.totalSessions + 1} पूर्ण सत्र हैं!${stats.streak > 0 ? ` आपकी वर्तमान स्ट्रीक: ${stats.streak} दिन।` : ''}`
+                          : `You now have ${stats.totalSessions + 1} completed sessions!${stats.streak > 0 ? ` Your current streak: ${stats.streak} days.` : ''}`
+                        }
                       </p>
                     </div>
                   )}
                   <p className="text-sm font-medium text-accent">
-                    Consider making this a daily practice - even 3 minutes can transform your mental wellness over time.
+                    {currentLanguage === 'hi' 
+                      ? 'इसे दैनिक अभ्यास बनाने पर विचार करें - केवल 3 मिनट भी समय के साथ आपकी मानसिक कल्याण को बदल सकते हैं।'
+                      : 'Consider making this a daily practice - even 3 minutes can transform your mental wellness over time.'
+                    }
                   </p>
                 </div>
               </div>
@@ -597,12 +712,12 @@ const DemoMentalReset = () => {
               {isPlaying ? (
                 <>
                   <Pause className="w-5 h-5 mr-2" />
-                  Pause Reset
+                  {t.buttons.pause}
                 </>
               ) : (
                 <>
                   <Play className="w-5 h-5 mr-2" />
-                  {progress > 0 ? "Resume" : "Start Reset"}
+                  {progress > 0 ? (currentLanguage === 'hi' ? 'फिर से शुरू करें' : 'Resume') : t.buttons.start}
                 </>
               )}
             </Button>
@@ -615,25 +730,46 @@ const DemoMentalReset = () => {
             >
               {isVoiceActive ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
             </Button>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleExportData}
+              disabled={exportLoading}
+              className="border-green-500 text-green-500 hover:bg-green-50"
+            >
+              {exportLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            </Button>
           </div>
 
           {/* Status Indicators with API feedback */}
           <div className="text-center space-y-2">
             {isVoiceActive && (
-              <p className="text-sm text-accent">🎤 Voice guidance active</p>
+              <p className="text-sm text-accent">🎤 {currentLanguage === 'hi' ? 'आवाज मार्गदर्शन सक्रिय' : 'Voice guidance active'}</p>
             )}
             {isRecording && (
-              <p className="text-sm text-red-500">🔴 Recording your voice...</p>
+              <p className="text-sm text-red-500">🔴 {currentLanguage === 'hi' ? 'आपकी आवाज रिकॉर्ड कर रहा है...' : 'Recording your voice...'}</p>
             )}
             {userInput && !isRecording && (
-              <p className="text-sm text-green-600">✓ Voice input received and saved</p>
+              <p className="text-sm text-green-600">✓ {currentLanguage === 'hi' ? 'आवाज इनपुट प्राप्त और सहेजा गया' : 'Voice input received and saved'}</p>
             )}
             {moodLoading && (
-              <p className="text-sm text-blue-500">💾 Saving your wellness data...</p>
+              <p className="text-sm text-blue-500">💾 {currentLanguage === 'hi' ? 'आपका कल्याण डेटा सहेज रहा है...' : 'Saving your wellness data...'}</p>
             )}
             {stats && (
               <p className="text-sm text-muted-foreground">
-                📊 Total sessions: {stats.totalSessions} | Average mood: {stats.averageMood}/5
+                📊 {currentLanguage === 'hi' 
+                  ? `कुल सत्र: ${stats.totalSessions} | औसत मूड: ${stats.averageMood}/5`
+                  : `Total sessions: ${stats.totalSessions} | Average mood: ${stats.averageMood}/5`
+                }
+              </p>
+            )}
+            {snapshot && (
+              <p className="text-sm text-purple-600">
+                📈 {currentLanguage === 'hi' 
+                  ? `कल्याण स्नैपशॉट तैयार! ${snapshot.insights.length} अंतर्दृष्टि उपलब्ध।`
+                  : `Wellness snapshot ready! ${snapshot.insights.length} insights available.`
+                }
               </p>
             )}
           </div>
