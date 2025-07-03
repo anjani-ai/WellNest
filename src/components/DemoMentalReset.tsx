@@ -1,11 +1,13 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Heart, Sparkles, MessageCircle, Mic, Play, Pause, RotateCcw, Brain, Clock, MicOff } from "lucide-react";
+import { Heart, Sparkles, MessageCircle, Mic, Play, Pause, RotateCcw, Brain, Clock, MicOff, RefreshCw, Cloud, Sun } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQuotes } from "@/hooks/useQuotes";
+import { useWeather } from "@/hooks/useWeather";
+import { useMoodTracking } from "@/hooks/useMoodTracking";
 
 const DemoMentalReset = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -25,6 +27,11 @@ const DemoMentalReset = () => {
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
+
+  // API hooks
+  const { quote, isLoading: quoteLoading, error: quoteError, refetchQuote } = useQuotes();
+  const { weather, suggestion, isLoading: weatherLoading, error: weatherError, fetchWeather } = useWeather();
+  const { saveMood, loadStats, stats, isLoading: moodLoading } = useMoodTracking();
 
   const stages = [
     { 
@@ -64,6 +71,13 @@ const DemoMentalReset = () => {
     }
   ];
 
+  // Load initial data when component mounts
+  useEffect(() => {
+    console.log('DemoMentalReset component mounted, loading initial data...');
+    loadStats();
+    fetchWeather();
+  }, []);
+
   // Initialize speech recognition
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -73,10 +87,10 @@ const DemoMentalReset = () => {
       recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = 'en-US';
 
-      recognitionRef.current.onresult = (event: any) => {
+      recognitionRef.current.onresult = async (event: any) => {
         const transcript = event.results[0][0].transcript;
         setUserInput(transcript);
-        generatePersonalizedResponse(transcript);
+        await generatePersonalizedResponse(transcript);
         setIsListening(false);
         setIsRecording(false);
       };
@@ -124,7 +138,6 @@ const DemoMentalReset = () => {
             setStageTitle(currentStage.title);
             setStageDescription(currentStage.description);
             
-            // Provide audio guidance for new stages
             if (isVoiceActive && synthRef.current) {
               const utterance = new SpeechSynthesisUtterance(currentStage.description);
               utterance.rate = 0.8;
@@ -138,10 +151,7 @@ const DemoMentalReset = () => {
           if (newSeconds >= 180) {
             clearInterval(intervalId);
             setIsPlaying(false);
-            toast({
-              title: "Session Complete! 🎉",
-              description: "You've successfully completed your 3-minute mental reset. Well done!",
-            });
+            handleSessionComplete();
             return 180;
           }
           return newSeconds;
@@ -177,7 +187,7 @@ const DemoMentalReset = () => {
     return () => clearInterval(breathingInterval);
   }, [isPlaying, sessionStage, breathingPhase]);
 
-  const generatePersonalizedResponse = (input: string) => {
+  const generatePersonalizedResponse = async (input: string) => {
     const responses = {
       stressed: "I hear that you're feeling stressed. That's completely valid - stress is your body's way of telling you something needs attention. You're taking the right step by being here.",
       anxious: "Anxiety can feel overwhelming, but you're safe right now. Let's work together to bring you back to the present moment where you have control.",
@@ -200,6 +210,21 @@ const DemoMentalReset = () => {
 
     setPersonalizedMessage(response);
 
+    // Save mood entry via API
+    try {
+      const mood = lowerInput.includes('stress') ? 'stressed' :
+                   lowerInput.includes('anxious') ? 'anxious' :
+                   lowerInput.includes('tired') ? 'tired' :
+                   lowerInput.includes('overwhelmed') ? 'overwhelmed' :
+                   lowerInput.includes('sad') ? 'sad' :
+                   lowerInput.includes('angry') ? 'angry' : 'mixed';
+      
+      await saveMood(mood, ['Mental Reset Session'], input);
+      console.log('Mood data saved to API');
+    } catch (error) {
+      console.error('Failed to save mood data:', error);
+    }
+
     if (isVoiceActive && synthRef.current) {
       const utterance = new SpeechSynthesisUtterance(response);
       utterance.rate = 0.8;
@@ -208,9 +233,27 @@ const DemoMentalReset = () => {
     }
   };
 
+  const handleSessionComplete = async () => {
+    try {
+      await saveMood('completed', ['3-minute reset', 'breathing exercise', 'mindfulness'], 'Completed full mental reset session');
+      
+      toast({
+        title: "Session Complete! 🎉",
+        description: "You've successfully completed your 3-minute mental reset. Your progress has been saved!",
+      });
+    } catch (error) {
+      console.error('Error saving session completion:', error);
+      toast({
+        title: "Session Complete! 🎉",
+        description: "You've successfully completed your 3-minute mental reset. Well done!",
+      });
+    }
+  };
+
   const togglePlay = () => {
     setIsPlaying(!isPlaying);
     if (!isPlaying) {
+      console.log('Starting mental reset session...');
       toast({
         title: "Session Started",
         description: "Your 3-minute mental reset journey begins now. Find a comfortable position.",
@@ -234,6 +277,7 @@ const DemoMentalReset = () => {
       synthRef.current.cancel();
     }
     
+    console.log('Session reset');
     toast({
       title: "Session Reset",
       description: "Ready to start fresh whenever you are.",
@@ -253,6 +297,7 @@ const DemoMentalReset = () => {
       setIsListening(true);
       setIsRecording(true);
       recognitionRef.current.start();
+      console.log('Voice input started');
       toast({
         title: "Listening...",
         description: "Share how you're feeling - I'm here to listen.",
@@ -283,6 +328,12 @@ const DemoMentalReset = () => {
     if (personalizedMessage) {
       return `Based on what you shared: "${personalizedMessage}" Remember, you have the strength to navigate whatever you're facing.`;
     }
+
+    // Use real quote from API if available
+    if (quote && !quoteLoading) {
+      return `"${quote.content}" - ${quote.author}. You are resilient and have everything within you to handle today's challenges.`;
+    }
+
     return "You are resilient. You have everything within you to handle today's challenges. Your worth isn't determined by your productivity or performance.";
   };
 
@@ -294,14 +345,58 @@ const DemoMentalReset = () => {
             <CardTitle className="text-2xl font-playfair font-semibold mb-2">{stageTitle}</CardTitle>
             <CardDescription className="text-base text-muted-foreground">{stageDescription}</CardDescription>
           </div>
-          <Badge className="bg-accent/20 text-accent-foreground px-4 py-2">
-            3-min session
-          </Badge>
+          <div className="flex items-center space-x-2">
+            <Badge className="bg-accent/20 text-accent-foreground px-4 py-2">
+              3-min session
+            </Badge>
+            {stats && (
+              <Badge variant="outline" className="px-3 py-1">
+                {stats.totalSessions} sessions completed
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
       
       <CardContent className="p-8">
         <div className="space-y-6">
+          {/* Real-time Data Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/20 rounded-lg">
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Sun className="w-4 h-4 text-yellow-500" />
+                <span className="text-sm font-medium">Weather-Based Suggestion</span>
+                {weatherLoading && <RefreshCw className="w-3 h-3 animate-spin" />}
+              </div>
+              {suggestion ? (
+                <p className="text-xs text-muted-foreground">{suggestion.suggestion}</p>
+              ) : weatherError ? (
+                <p className="text-xs text-red-500">Weather data unavailable</p>
+              ) : (
+                <Button size="sm" variant="outline" onClick={fetchWeather} disabled={weatherLoading}>
+                  Get Weather Suggestion
+                </Button>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Sparkles className="w-4 h-4 text-purple-500" />
+                <span className="text-sm font-medium">Daily Inspiration</span>
+                {quoteLoading && <RefreshCw className="w-3 h-3 animate-spin" />}
+              </div>
+              {quote ? (
+                <p className="text-xs text-muted-foreground">"{quote.content.slice(0, 80)}..." - {quote.author}</p>
+              ) : quoteError ? (
+                <p className="text-xs text-red-500">Quote service unavailable</p>
+              ) : (
+                <Button size="sm" variant="outline" onClick={refetchQuote} disabled={quoteLoading}>
+                  Get Inspiration
+                </Button>
+              )}
+            </div>
+          </div>
+
           {/* Progress Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -331,6 +426,13 @@ const DemoMentalReset = () => {
                     💡 <strong>Tip:</strong> Find a comfortable position, take a deep breath, and let yourself arrive in this moment.
                   </p>
                 </div>
+                {weather && (
+                  <div className="bg-blue/10 rounded-lg p-3">
+                    <p className="text-xs">
+                      🌤️ Current weather: {Math.round(weather.main.temp)}°C - Perfect for a mental reset!
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -347,20 +449,24 @@ const DemoMentalReset = () => {
                   </p>
                   <p className="text-base text-muted-foreground">
                     Take a moment to check in with yourself. What emotions are you experiencing? 
-                    What thoughts are on your mind? You can share by voice or simply reflect silently.
+                    What thoughts are on your mind? Your response will be saved to track your wellness journey.
                   </p>
                   
-                  {/* Voice Input Section */}
                   <div className="space-y-3">
                     <Button
                       onClick={startVoiceInput}
-                      disabled={isListening || !isPlaying}
+                      disabled={isListening || !isPlaying || moodLoading}
                       className="bg-secondary hover:bg-secondary/90"
                     >
                       {isRecording ? (
                         <>
                           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-2" />
                           Listening...
+                        </>
+                      ) : moodLoading ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
                         </>
                       ) : (
                         <>
@@ -452,9 +558,17 @@ const DemoMentalReset = () => {
                       <li>• Practiced emotional awareness and self-compassion</li>
                       <li>• Activated your body's natural stress-relief system</li>
                       <li>• Reinforced positive neural pathways</li>
-                      <li>• Invested in your long-term mental wellness</li>
+                      <li>• Your data has been saved to track your wellness journey</li>
                     </ul>
                   </div>
+                  {stats && (
+                    <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
+                      <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                        🎯 You now have {stats.totalSessions + 1} completed sessions! 
+                        {stats.streak > 0 && ` Your current streak: ${stats.streak} days.`}
+                      </p>
+                    </div>
+                  )}
                   <p className="text-sm font-medium text-accent">
                     Consider making this a daily practice - even 3 minutes can transform your mental wellness over time.
                   </p>
@@ -503,7 +617,7 @@ const DemoMentalReset = () => {
             </Button>
           </div>
 
-          {/* Status Indicators */}
+          {/* Status Indicators with API feedback */}
           <div className="text-center space-y-2">
             {isVoiceActive && (
               <p className="text-sm text-accent">🎤 Voice guidance active</p>
@@ -512,7 +626,15 @@ const DemoMentalReset = () => {
               <p className="text-sm text-red-500">🔴 Recording your voice...</p>
             )}
             {userInput && !isRecording && (
-              <p className="text-sm text-green-600">✓ Voice input received</p>
+              <p className="text-sm text-green-600">✓ Voice input received and saved</p>
+            )}
+            {moodLoading && (
+              <p className="text-sm text-blue-500">💾 Saving your wellness data...</p>
+            )}
+            {stats && (
+              <p className="text-sm text-muted-foreground">
+                📊 Total sessions: {stats.totalSessions} | Average mood: {stats.averageMood}/5
+              </p>
             )}
           </div>
         </div>
